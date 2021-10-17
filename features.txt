@@ -1,0 +1,8 @@
+three poll versions
+reaction
+multiple options
+strawpoll
+
+display results
+call out non-responsive members
+security to check that they are player/coach
