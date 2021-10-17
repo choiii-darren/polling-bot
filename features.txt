@@ -1,7 +1,8 @@
 three poll versions
-reaction
-multiple options
-strawpoll
+reaction 
+-> Reaction Poll can be made
+-> TO-DO: Store/Display Results
+multiple options -> works by adding {question} [options1] [options2] ....
 
 display results
 call out non-responsive members
