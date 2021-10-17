@@ -1,2 +1,5 @@
-.vscode
+*/__pycache__/
+.vscode/*
 config.json
+/__pycache__
+*.toml
