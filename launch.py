@@ -1,6 +1,7 @@
 import discord
+import json
 from polling_bot import PollBot
 
-
-bot = PollBot()
-bot.run()
+f = open('config.json')
+bot = PollBot("!",None)
+bot.run(json.load(f)["bot_token"])
