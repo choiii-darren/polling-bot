@@ -5,8 +5,6 @@ from discord.ext import commands
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "ODk5MTIyMTQ3NzY5ODQ3ODA5.YWuKwA.KUl_k3wHaCRi0lebfJbE5s-6DxE"
-
 
 class PollBot(commands.Bot):
     def __init__(self, command_prefix, help_command=..., description=None, **options):
