@@ -11,21 +11,15 @@ class PollBot(commands.Bot):
         super().__init__(command_prefix, help_command=help_command,
                          description=description, **options)
 
-    async def test(ctx, arg):
+    async def test(self, ctx, arg):
         await ctx.send('yeo {}'.format(arg))
 
+    async def on_ready(self):
+        print('We have logged in as {0.user}'.format(self))
 
-# @PollBot.event
-# async def on_ready():
-#     print('We have logged in as {0.user}'.format(client))
+    async def on_message(self, message):
+        if message.author == self.user:
+            return
 
-
-# @PollBot.event
-# async def on_message(message):
-#     if message.author == client.user:
-#         return
-
-#     if message.content.startswith('!hello'):
-#         await message.channel.send('Hello!')
-
-PollBot.run()
+        if message.content.startswith('!hello'):
+            await message.channel.send('Hello World!')
