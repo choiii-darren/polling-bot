@@ -1,9 +1,9 @@
-three poll versions
-reaction 
--> Reaction Poll can be made
--> TO-DO: Store/Display Results
-multiple options -> works by adding {question} [options1] [options2] ....
+two poll versions
+reaction -> DONE !poll -r
+multiple options -> DONE !poll {question} [options1] [options2] ....
 
-display results
-call out non-responsive members
-security to check that they are player/coach
+
+stored results -> DONE
+display results -> DONE
+call out non-responsive members -> DONE
+security to check that they are player/coach -> DONE
