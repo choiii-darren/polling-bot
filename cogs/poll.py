@@ -1,8 +1,9 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
+from replit import db
 
-class Reactions(commands.Cog):
+class Poll(commands.Cog):
   def __init__(self, client):
     self.client = client
     self.emojiLetters = [
@@ -28,18 +29,20 @@ class Reactions(commands.Cog):
             "\N{REGIONAL INDICATOR SYMBOL LETTER T}"
         ]
 
-  #!poll {What is your favorite emoji} [Smile Face] [Sad Face]
-  #!poll -r {What is your favorite emoji}
   @commands.cooldown(6,10, BucketType.user)
   @commands.command(name="poll")
   async def poll(self, ctx):
     message = ctx.message
+    if not (self.is_role('coach', ctx.author) or self.is_role('player',ctx.author)):
+      await message.channel.send("You don't have the permissions required to use this feature.")
+      return
     if not message.author.bot:
       messageContent = message.clean_content
       if not (messageContent.find('-r')  == -1):
         await message.add_reaction('👍')
         await message.add_reaction('👎')
         await message.add_reaction('🤷')
+        await message.channel.send(f"Poll ID: {str(message.id)}")
       else:
         title = self.find_question(messageContent)
         options = self.find_options(messageContent, [])
@@ -73,8 +76,48 @@ class Reactions(commands.Cog):
     else: 
       return
 
+  @commands.command(name="remind")
+  async def remind(self, ctx):
+    self.messageReactors = dict(db['messageReactors'])
+    self.pollKey = ctx.message.content[8:]
+    if not (str(self.pollKey) in self.messageReactors) or len(self.messageReactors[str(self.pollKey)]) == 0:
+      await ctx.channel.send('No one has responded to this poll yet! @everyone')
+      return
+    self.specificMessageReactors = self.messageReactors[str(self.pollKey)]
+    #get all channel dudes
+    #channel = self.client.get_channel(ctx.channel.id)
+    #if they exist in the database, take them out of the array
+    members= ctx.channel.members
+    memids = []
+    for member in members:
+      memids.append(member.id)
+      if (member.id == self.client.user.id):
+        memids.remove(member.id)
+    for reactors in self.specificMessageReactors:
+      for member in memids:
+        if str(member) == reactors:
+          memids.remove(member)
+    #mention all users
+    if len(memids) == 0:
+      await ctx.channel.send('Everyone responded! Yay!')
+      return
+    responseMessage = f'The following have not responded to Poll {self.pollKey}: \n'
+    for member in memids:
+      responseMessage += f"<@{member}> \n"
+    await ctx.channel.send(responseMessage)
+    
+
+  @commands.command(name="pollResults")
+  async def pollResults(self, ctx):
+    self.pollKey = ctx.message.content[12:]
+    message = await ctx.fetch_message(int(self.pollKey))
+    returnString = (f'Poll results for Poll {message.id} are: \n')
+    for reaction in message.reactions:
+      returnString += f'{reaction.emoji} was voted {str(int(reaction.count) - 1)} time(s)\n'
+    await ctx.channel.send(returnString)
+
   def find_question(self, message):
-    first = message.find('{') + 1
+    first = message.find('{') + 1 
     last = message.find('}')
     if first == 0 or last == -1:
       return "Use the Polling feature by containing your question in {}."
@@ -91,10 +134,18 @@ class Reactions(commands.Cog):
     options.append(message[first:last])
     message = message[last+1:]
     return self.find_options(message,options)
+  
+  def is_role(self, role, author):
+    for y in author.roles:
+      if role.lower() == str(y).lower():
+        return True
+    return False
 
-    
-
-
+  @commands.command(name="foundRole")
+  async def foundRole(self, message):
+    content = message.message.content
+    role = content[11:]
+    await message.channel.send(self.is_role(role, message.author))
 
 def setup(client):
-  client.add_cog(Reactions(client))
+  client.add_cog(Poll(client))
