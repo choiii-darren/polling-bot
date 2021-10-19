@@ -1,9 +1,0 @@
-two poll versions
-reaction -> DONE !poll -r
-multiple options -> DONE !poll {question} [options1] [options2] ....
-
-
-stored results -> DONE
-display results -> DONE
-call out non-responsive members -> DONE
-security to check that they are player/coach -> DONE
