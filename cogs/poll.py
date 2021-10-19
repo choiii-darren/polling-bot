@@ -29,7 +29,7 @@ class Poll(commands.Cog):
             "\N{REGIONAL INDICATOR SYMBOL LETTER T}"
         ]
 
-  @commands.cooldown(6,10, BucketType.user)
+  @commands.cooldown(2,60, BucketType.user)
   @commands.command(name="poll")
   async def poll(self, ctx):
     message = ctx.message
@@ -37,12 +37,18 @@ class Poll(commands.Cog):
       await message.channel.send("You don't have the permissions required to use this feature.")
       return
     if not message.author.bot:
-      messageContent = message.clean_content
-      if not (messageContent.find('-r')  == -1):
-        await message.add_reaction('👍')
-        await message.add_reaction('👎')
-        await message.add_reaction('🤷')
-        await message.channel.send(f"Poll ID: {str(message.id)}")
+      messageContent = message.clean_content 
+      if (messageContent.find("[") == -1):
+        if (self.find_question(messageContent) == "Use the Polling feature by containing your question in {}."):
+          question = "Quick Poll"
+        else:
+          question =  self.find_question(messageContent)
+        reactionMessage = await message.channel.send(question)
+        await reactionMessage.add_reaction('👍')
+        await reactionMessage.add_reaction('👎')
+        await reactionMessage.add_reaction('🤷')
+        await message.channel.send(f"Poll ID: {str(reactionMessage.id)}")
+        await message.delete()
       else:
         title = self.find_question(messageContent)
         options = self.find_options(messageContent, [])
@@ -71,15 +77,29 @@ class Poll(commands.Cog):
              final_options.append(choice)
              await pollMessage.add_reaction(self.emojiLetters[i])
             i += 1
+          await message.channel.send(f"Poll ID: {str(pollMessage.id)}")
+          await message.delete()
         except KeyError:
           return "Please make sure you are using the format '!poll {question} [Option1] [Option2] [Option3]'"
     else: 
       return
-
+  
+  @commands.cooldown(3, 30, BucketType.user)
   @commands.command(name="remind")
-  async def remind(self, ctx):
+  async def remind(self, ctx, arg):
+    if not (self.is_role('coach', ctx.author) or self.is_role('player',ctx.author)):
+      await ctx.channel.send("You don't have the permissions required to use this feature.")
+      return
     self.messageReactors = dict(db['messageReactors'])
-    self.pollKey = ctx.message.content[8:]
+    self.pollKey = arg
+    if (len(arg) == 0):
+      await ctx.channel.send("You forgot to include the pollID, please use `!remind <pollId>`")
+      return
+    try:
+      await ctx.fetch_message(int(self.pollKey))
+    except:
+      await ctx.channel.send("The pollID you inserted does not exist, please use a valid pollID!")
+      return      
     if not (str(self.pollKey) in self.messageReactors) or len(self.messageReactors[str(self.pollKey)]) == 0:
       await ctx.channel.send('No one has responded to this poll yet! @everyone')
       return
@@ -106,14 +126,25 @@ class Poll(commands.Cog):
       responseMessage += f"<@{member}> \n"
     await ctx.channel.send(responseMessage)
     
-
+  @commands.cooldown(3, 30, BucketType.user)
   @commands.command(name="pollResults")
-  async def pollResults(self, ctx):
-    self.pollKey = ctx.message.content[12:]
+  async def pollResults(self, ctx, arg):
+    if not (self.is_role('coach', ctx.author) or self.is_role('player',ctx.author)):
+      await ctx.channel.send("You don't have the permissions required to use this feature.")
+      return
+    self.pollKey = arg
+    if (len(arg) == 0):
+      await ctx.channel.send("You forgot to include the pollID, please use `!remind <pollId>`")
+      return
+    try:
+      await ctx.fetch_message(int(self.pollKey))
+    except:
+      await ctx.channel.send("The pollID you inserted does not exist, please use a valid pollID!")
+      return    
     message = await ctx.fetch_message(int(self.pollKey))
-    returnString = (f'Poll results for Poll {message.id} are: \n')
+    returnString = (f'Poll results for Poll {self.pollKey} are: \n')
     for reaction in message.reactions:
-      returnString += f'{reaction.emoji} was voted {str(int(reaction.count) - 1)} time(s)\n'
+        returnString += f'{reaction.emoji} was voted {str(int(reaction.count) - 1)} time(s)\n'
     await ctx.channel.send(returnString)
 
   def find_question(self, message):
@@ -141,11 +172,6 @@ class Poll(commands.Cog):
         return True
     return False
 
-  @commands.command(name="foundRole")
-  async def foundRole(self, message):
-    content = message.message.content
-    role = content[11:]
-    await message.channel.send(self.is_role(role, message.author))
 
 def setup(client):
   client.add_cog(Poll(client))

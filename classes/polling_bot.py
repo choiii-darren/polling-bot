@@ -7,7 +7,6 @@ from discord.ext import commands
 
 logging.basicConfig(level=logging.INFO)
 
-
 class PollBot(commands.Bot):
     def __init__(self, command_prefix, help_command=..., description=None, **options):
         super().__init__(command_prefix, help_command=help_command,
@@ -18,13 +17,6 @@ class PollBot(commands.Bot):
             self.load_extension(f'cogs.{filename[0:-3]}')
 
     def add_commands(self):      
-      @self.command(name='help')
-      async def customHelp(ctx):
-        helptext = "PollBot has the following commands:\n"
-        for command in self.commands:
-            helptext+=f"-{command}\n"
-        await ctx.send(helptext)
-        
       @self.command(name='load')
       async def load(ctx, extension):
         self.load_extension(f'cogs.{extension}')

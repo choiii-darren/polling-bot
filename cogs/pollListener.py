@@ -38,10 +38,5 @@ class PollListener(commands.Cog):
     else:
       return
 
-  @commands.command(name="showMsgr")
-  async def showMsgr(self, ctx):
-    self.messageReactors = db['messageReactors']
-    print(self.messageReactors)
-
 def setup(client):
   client.add_cog(PollListener(client))
